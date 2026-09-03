@@ -1,63 +1,160 @@
-# Flappy Bird
+🐦 Flappy Bird — the whole game drawn in code, playable on a phone or a desktop
 
-Bản Flappy Bird chạy trên web, viết bằng Next.js 15 + React 19 + Canvas 2D.
-Toàn bộ hình ảnh và âm thanh được sinh bằng code — không dùng một file asset nào.
+A Flappy Bird clone built with Next.js and Canvas 2D. Every sprite, every sound
+effect is generated at runtime — the project ships no image or audio file at all.
+No server, no sign-in: your records stay on your own device.
 
-- Chơi được trên cả máy tính lẫn điện thoại
-- Ba mức độ khó, mỗi mức có bảng kỷ lục riêng
-- Tạm dừng, bật/tắt âm thanh, lưu cài đặt và điểm cao vào máy người chơi
+**Play**: https://levananhduc.github.io/game-flappy-bird/
 
-## Chạy dự án
+## Features
+
+- **The game itself**
+
+  - Tap, click or press Space to flap; slip through the gap between pipes and stay off the ground
+  - Hitting the ceiling only stops you, it does not kill you — the same forgiveness the original had
+  - The hitbox is smaller than the bird you see, so a near miss reads as "just made it" instead of "cheated"
+
+- **Three difficulties, three separate record tables**
+
+  - Easy / Normal / Hard change gravity, scroll speed, gap height and the spacing between pipes
+  - Each difficulty keeps its own best score — a run on Easy can never bury a record set on Hard
+  - The chosen difficulty is remembered between visits
+
+- **Plays the same everywhere**
+
+  - The world is a fixed 288 × 512 logical box scaled to fit the screen, so the difficulty and the scores are identical on every device
+  - Physics runs on a fixed 1/120s step: a 60Hz laptop and a 144Hz monitor behave exactly alike
+  - Portrait phones fill the frame; wide screens show the play area as a lit column against a dark page
+
+- **Built for touch as much as for a keyboard**
+
+  - Flap with `Space`, `↑`, `W`, a mouse click or a tap
+  - Double-tap zoom, pull-to-refresh and text selection are all suppressed over the play area, so fast tapping stays fast tapping
+  - Overlays never swallow a tap — only their buttons take pointer events
+
+- **Pause, and never lose a run by accident**
+
+  - `P` or `Esc` freezes the run and says so on screen
+  - Switching browser tabs pauses the game by itself, so you do not come back to a dead bird
+
+- **Sound without a single audio file**
+
+  - Flap, score, hit and die are synthesised with WebAudio oscillators
+  - Mute from the header or from settings; the choice is remembered
+  - A browser that blocks or lacks WebAudio simply plays nothing — the game never breaks over sound
+
+- **Graphics generated at runtime**
+
+  - Sky gradient, clouds and hills scroll on four parallax layers
+  - The bird's wing beat is derived from its vertical speed: fast strokes climbing, an outstretched glide falling
+  - Every colour lives in one palette file, so re-skinning the game touches nothing else
+
+- **No sign-in, no server**
+  - Records and settings live in localStorage on your own device
+  - Blocked storage (private windows) or corrupted data degrades to defaults instead of crashing
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript (strict mode)
+- **Rendering**: Canvas 2D, drawn procedurally — no sprite sheet, no asset files
+- **Styling**: Tailwind CSS v3, lucide-react icons
+- **Audio**: WebAudio API (oscillator + gain envelope)
+- **Testing**: Vitest (78 unit tests) + Playwright (17 end-to-end tests, Desktop Chrome and Pixel 7)
+- **Build & Deploy**: static export, deployed to GitHub Pages by GitHub Actions
+
+## Running
+
+**Requires**: Node.js 18+
 
 ```bash
-yarn dev        # chạy ở chế độ phát triển, mở http://localhost:3000
-yarn build      # build bản production
-yarn start      # chạy bản đã build
+# Install dependencies
+yarn install
+
+# Start the development server (http://localhost:3000)
+yarn dev
+
+# Run the unit tests (Vitest)
+yarn test
+
+# Run the browser tests (Playwright)
+yarn test:e2e
+
+# Build a static site (output: out/)
+yarn build
 ```
 
-## Kiểm thử
+## Controls
 
-```bash
-yarn test       # unit test logic game (Vitest)
-yarn test:e2e   # test luồng người dùng (Playwright, desktop + mobile)
-yarn typecheck  # kiểm tra kiểu TypeScript
-```
+| Action | Key / gesture                 |
+| ------ | ----------------------------- |
+| Flap   | `Space`, `↑`, `W`, click, tap |
+| Pause  | `P` or `Esc`                  |
 
-## Điều khiển
+## Project structure
 
-| Thao tác | Phím / cử chỉ                                 |
-| -------- | --------------------------------------------- |
-| Vỗ cánh  | `Space`, `↑`, `W`, click chuột, chạm màn hình |
-| Tạm dừng | `P` hoặc `Esc`                                |
-
-## Kiến trúc
-
-Nguyên tắc xuyên suốt: **`src/game/` không import React.** Nó là một thư viện
-TypeScript độc lập, chạy được trong Node — nhờ vậy toàn bộ luật chơi kiểm chứng
-được bằng unit test mà không cần trình duyệt.
+The rule that shapes everything: **`src/game/` never imports React.** It is a
+standalone TypeScript library that runs under Node, which is why every rule of
+the game can be checked without a browser.
 
 ```
 src/
 ├── game/
-│   ├── core/      Hàm thuần: vật lý, sinh ống, va chạm, tính điểm, vòng đời thế giới
-│   ├── engine/    Vòng lặp requestAnimationFrame, thu nhận bàn phím/chuột/chạm
-│   ├── render/    Vẽ Canvas 2D: viewport, các lớp hình, bảng màu
-│   ├── score/     Lưu kỷ lục (interface + bản localStorage)
-│   ├── settings/  Lưu cài đặt
-│   ├── storage/   Bọc localStorage an toàn (SSR, chế độ ẩn danh)
-│   └── audio/     Âm thanh sinh bằng WebAudio
+│   ├── core/       # Pure functions: physics, pipe spawning, collision, scoring, world step
+│   │   ├── world.ts        # stepWorld(state, dt, input) -> state
+│   │   ├── physics.ts      # Gravity, flap, rotation from velocity
+│   │   ├── collision.ts    # AABB overlap, bird/pipe/ground hitboxes
+│   │   ├── pipes.ts        # Spawn, move, recycle
+│   │   ├── scoring.ts      # One point per pipe, never twice
+│   │   ├── rng.ts          # Seeded mulberry32, kept inside the state
+│   │   └── constants.ts    # World size and the per-difficulty tuning table
+│   ├── engine/     # The impure half: requestAnimationFrame loop, keyboard/pointer input
+│   ├── render/     # Canvas 2D: viewport scaling, layers, palette
+│   ├── score/      # ScoreRepository interface + localStorage implementation
+│   ├── settings/   # Settings persistence
+│   ├── storage/    # localStorage wrapper safe under SSR and private mode
+│   └── audio/      # WebAudio sound effects
 ├── hooks/
-│   └── useGameEngine.ts   Cầu nối duy nhất giữa engine và React
-└── views/Home/            Giao diện: Header, canvas, HUD và các overlay
+│   └── useGameEngine.ts    # The single bridge between the engine and React
+└── views/Home/             # Header, canvas, HUD and the overlays
+
+docs/
+└── superpowers/specs/2026-09-03-flappy-bird-design.md  # Full design spec
 ```
 
-Hai điểm đáng chú ý trong thiết kế:
+## How a frame works
 
-1. **Thế giới cố định 288 × 512 đơn vị logic**, scale ra màn hình theo kiểu
-   _contain_. Mọi thiết bị mô phỏng trên cùng kích thước nên độ khó và điểm số
-   công bằng như nhau.
-2. **Vật lý chạy ở bước cố định 1/120 giây.** Màn hình 60Hz hay 144Hz đều cho ra
-   hành vi giống hệt nhau. Engine chỉ báo cho React khi điểm hoặc trạng thái
-   thực sự đổi, nên React không bao giờ render lại theo từng khung hình.
+The loop accumulates real time and spends it in fixed 1/120s slices, capped at
+five slices per frame so a tab left in the background cannot trigger a death
+spiral on its return:
 
-Tài liệu thiết kế đầy đủ: [`docs/superpowers/specs/2026-09-03-flappy-bird-design.md`](docs/superpowers/specs/2026-09-03-flappy-bird-design.md)
+```
+frame(now):
+  accumulator += now - previous
+  steps = 0
+  while accumulator >= 1/120 and steps < 5:
+    state = stepWorld(state, 1/120, { flap: queue.shift() })
+    accumulator -= 1/120
+    steps += 1
+  render(ctx, state, viewport)
+  emit({ phase, score, difficulty })   # only when one of the three changed
+```
+
+That last line is the reason the game holds 60fps: React re-renders when the
+score changes, not sixty times a second.
+
+## Deployment
+
+Pushing to `main` runs two workflows:
+
+- `.github/workflows/deploy.yml` — runs the unit tests, then the browser tests,
+  builds a static export with the GitHub Pages base path, and publishes it
+- `.github/workflows/release.yml` — reads the Conventional Commit prefixes since
+  the last tag, bumps the version accordingly, and cuts a GitHub release with
+  generated notes
+
+Release notes are automated, the README is not. A user-facing `feat:` commit
+should update the `## Features` section in the same branch.
+
+---
+
+**Created**: 2026-09-03
