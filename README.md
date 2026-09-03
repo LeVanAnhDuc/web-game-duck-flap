@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flappy Bird
 
-## Getting Started
+Bản Flappy Bird chạy trên web, viết bằng Next.js 15 + React 19 + Canvas 2D.
+Toàn bộ hình ảnh và âm thanh được sinh bằng code — không dùng một file asset nào.
 
-First, run the development server:
+- Chơi được trên cả máy tính lẫn điện thoại
+- Ba mức độ khó, mỗi mức có bảng kỷ lục riêng
+- Tạm dừng, bật/tắt âm thanh, lưu cài đặt và điểm cao vào máy người chơi
+
+## Chạy dự án
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn dev        # chạy ở chế độ phát triển, mở http://localhost:3000
+yarn build      # build bản production
+yarn start      # chạy bản đã build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Kiểm thử
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn test       # unit test logic game (Vitest)
+yarn test:e2e   # test luồng người dùng (Playwright, desktop + mobile)
+yarn typecheck  # kiểm tra kiểu TypeScript
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Điều khiển
 
-## Learn More
+| Thao tác | Phím / cử chỉ                                 |
+| -------- | --------------------------------------------- |
+| Vỗ cánh  | `Space`, `↑`, `W`, click chuột, chạm màn hình |
+| Tạm dừng | `P` hoặc `Esc`                                |
 
-To learn more about Next.js, take a look at the following resources:
+## Kiến trúc
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Nguyên tắc xuyên suốt: **`src/game/` không import React.** Nó là một thư viện
+TypeScript độc lập, chạy được trong Node — nhờ vậy toàn bộ luật chơi kiểm chứng
+được bằng unit test mà không cần trình duyệt.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── game/
+│   ├── core/      Hàm thuần: vật lý, sinh ống, va chạm, tính điểm, vòng đời thế giới
+│   ├── engine/    Vòng lặp requestAnimationFrame, thu nhận bàn phím/chuột/chạm
+│   ├── render/    Vẽ Canvas 2D: viewport, các lớp hình, bảng màu
+│   ├── score/     Lưu kỷ lục (interface + bản localStorage)
+│   ├── settings/  Lưu cài đặt
+│   ├── storage/   Bọc localStorage an toàn (SSR, chế độ ẩn danh)
+│   └── audio/     Âm thanh sinh bằng WebAudio
+├── hooks/
+│   └── useGameEngine.ts   Cầu nối duy nhất giữa engine và React
+└── views/Home/            Giao diện: Header, canvas, HUD và các overlay
+```
 
-## Deploy on Vercel
+Hai điểm đáng chú ý trong thiết kế:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Thế giới cố định 288 × 512 đơn vị logic**, scale ra màn hình theo kiểu
+   _contain_. Mọi thiết bị mô phỏng trên cùng kích thước nên độ khó và điểm số
+   công bằng như nhau.
+2. **Vật lý chạy ở bước cố định 1/120 giây.** Màn hình 60Hz hay 144Hz đều cho ra
+   hành vi giống hệt nhau. Engine chỉ báo cho React khi điểm hoặc trạng thái
+   thực sự đổi, nên React không bao giờ render lại theo từng khung hình.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Tài liệu thiết kế đầy đủ: [`docs/superpowers/specs/2026-09-03-flappy-bird-design.md`](docs/superpowers/specs/2026-09-03-flappy-bird-design.md)
