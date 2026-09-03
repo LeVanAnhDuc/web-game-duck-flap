@@ -4,7 +4,7 @@ A Flappy Bird clone built with Next.js and Canvas 2D. Every sprite, every sound
 effect is generated at runtime — the project ships no image or audio file at all.
 No server, no sign-in: your records stay on your own device.
 
-**Play**: https://levananhduc.github.io/game-flappy-bird/
+**Play**: https://levananhduc.github.io/web-game-flappy-bird/
 
 ## Features
 
