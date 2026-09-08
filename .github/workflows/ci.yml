@@ -1,0 +1,74 @@
+# Cong chan truoc khi merge. Day la workflow duy nhat chay TRUOC khi code vao
+# `main`; `deploy.yml` va `release.yml` deu chay SAU, nen chung khong chan duoc gi.
+#
+# Repo nay tung khong co ci.yml nao ca: mot pull request co the merge voi test do,
+# lint do hoac sai kieu, va deploy se publish no.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, types, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn test
+
+      # Build o day chu khong chi trong deploy: mot loi build chi lo ra luc deploy
+      # la mot loi lo ra sau khi da merge.
+      - run: yarn build
+
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      # Khong can `yarn build` truoc: playwright.config.ts tu khoi `next dev`
+      # qua webServer.
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Chi xet dependency ma pull request THEM VAO. Lo hong da nam san trong lock
+  # file la viec cua Dependabot - action nay so base voi head, no khong thay
+  # nhung thu von da o do.
+  dependencies:
+    name: New dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
