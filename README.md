@@ -1,15 +1,15 @@
-# 🐦 Flappy Bird — the whole game drawn in code, playable on a phone or a desktop
+# 🐦 Duck Flap — the whole game drawn in code, playable on a phone or a desktop
 
-[![Deploy](https://github.com/LeVanAnhDuc/web-game-flappy-bird/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-flappy-bird/actions/workflows/deploy.yml)
-[![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-flappy-bird?sort=semver)](https://github.com/LeVanAnhDuc/web-game-flappy-bird/releases)
+[![Deploy](https://github.com/LeVanAnhDuc/web-game-duck-flap/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-duck-flap/actions/workflows/deploy.yml)
+[![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-duck-flap?sort=semver)](https://github.com/LeVanAnhDuc/web-game-duck-flap/releases)
 
 A Flappy Bird clone built with Next.js and Canvas 2D. Every sprite, every sound
 effect is generated at runtime — the project ships no image or audio file at all.
 No server, no sign-in: your records stay on your own device.
 
-**Play**: https://levananhduc.github.io/web-game-flappy-bird/
+**Play**: https://levananhduc.github.io/web-game-duck-flap/
 
-![Flappy Bird gameplay](docs/assets/screenshot.png)
+![Duck Flap gameplay](docs/assets/screenshot.png)
 
 ## Features
 
