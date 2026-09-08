@@ -1,10 +1,15 @@
-🐦 Flappy Bird — the whole game drawn in code, playable on a phone or a desktop
+# 🐦 Flappy Bird — the whole game drawn in code, playable on a phone or a desktop
+
+[![Deploy](https://github.com/LeVanAnhDuc/web-game-flappy-bird/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-flappy-bird/actions/workflows/deploy.yml)
+[![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-flappy-bird?sort=semver)](https://github.com/LeVanAnhDuc/web-game-flappy-bird/releases)
 
 A Flappy Bird clone built with Next.js and Canvas 2D. Every sprite, every sound
 effect is generated at runtime — the project ships no image or audio file at all.
 No server, no sign-in: your records stay on your own device.
 
 **Play**: https://levananhduc.github.io/web-game-flappy-bird/
+
+![Flappy Bird gameplay](docs/assets/screenshot.png)
 
 ## Features
 
@@ -53,16 +58,14 @@ No server, no sign-in: your records stay on your own device.
   - Records and settings live in localStorage on your own device
   - Blocked storage (private windows) or corrupted data degrades to defaults instead of crashing
 
-## Tech Stack
+## Controls
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript (strict mode)
-- **Rendering**: Canvas 2D, drawn procedurally — no sprite sheet, no asset files
-- **Styling**: Tailwind CSS v3, lucide-react icons
-- **Audio**: WebAudio API (oscillator + gain envelope)
-- **Testing**: Vitest (78 unit tests) + Playwright (17 end-to-end tests, Desktop Chrome and Pixel 7)
-- **Build & Deploy**: static export, deployed to GitHub Pages by GitHub Actions
+| Action | Key / gesture                 |
+| ------ | ----------------------------- |
+| Flap   | `Space`, `↑`, `W`, click, tap |
+| Pause  | `P` or `Esc`                  |
 
-## Running
+## Commands
 
 **Requires**: Node.js 18+
 
@@ -83,12 +86,14 @@ yarn test:e2e
 yarn build
 ```
 
-## Controls
+## How it is put together
 
-| Action | Key / gesture                 |
-| ------ | ----------------------------- |
-| Flap   | `Space`, `↑`, `W`, click, tap |
-| Pause  | `P` or `Esc`                  |
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript (strict mode)
+- **Rendering**: Canvas 2D, drawn procedurally — no sprite sheet, no asset files
+- **Styling**: Tailwind CSS v3, lucide-react icons
+- **Audio**: WebAudio API (oscillator + gain envelope)
+- **Testing**: Vitest (78 unit tests) + Playwright (17 end-to-end tests, Desktop Chrome and Pixel 7)
+- **Build & Deploy**: static export, deployed to GitHub Pages by GitHub Actions
 
 ## Project structure
 
@@ -142,7 +147,7 @@ frame(now):
 That last line is the reason the game holds 60fps: React re-renders when the
 score changes, not sixty times a second.
 
-## Deployment
+## Releases and versioning
 
 Pushing to `main` runs two workflows:
 
@@ -158,3 +163,8 @@ should update the `## Features` section in the same branch.
 ---
 
 **Created**: 2026-09-03
+
+## Documentation
+
+The full design spec — the rules, the tuning table and the reasoning behind both —
+is in [`docs/superpowers/specs/2026-09-03-flappy-bird-design.md`](docs/superpowers/specs/2026-09-03-flappy-bird-design.md).
