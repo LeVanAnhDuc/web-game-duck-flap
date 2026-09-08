@@ -28,7 +28,7 @@ const MenuOverlay = ({
   >
     <div className="w-[min(100%,320px)] rounded-2xl border border-white/10 bg-[#0A2130]/85 p-6 text-center shadow-2xl backdrop-blur-md duration-200 animate-in fade-in zoom-in-95">
       <h1 className="text-[34px] font-black leading-none tracking-[-0.03em] text-[#EAF6FB]">
-        Flappy Bird
+        Duck Flap
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-[#8FB3C4]">
         Chạm để bay lên, luồn qua khe giữa hai ống, đừng chạm đất.

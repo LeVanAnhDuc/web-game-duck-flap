@@ -26,7 +26,7 @@ const Header = ({
 }: HeaderProps) => (
   <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/[0.07] bg-[#081C29] pl-4 pr-2">
     <span className="text-[15px] font-semibold tracking-tight text-[#EAF6FB]">
-      Flappy Bird
+      Duck Flap
     </span>
 
     <div className="flex items-center gap-1">

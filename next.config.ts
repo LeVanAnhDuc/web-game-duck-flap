@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * và `yarn build` ở máy vẫn chạy ở gốc như bình thường.
  */
 const isGithubPages = process.env.GITHUB_PAGES === "true";
-const basePath = "/web-game-flappy-bird";
+const basePath = "/web-game-duck-flap";
 
 const nextConfig: NextConfig = {
   /**

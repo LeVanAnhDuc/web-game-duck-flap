@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flappy Bird - LeVanAnhDuc",
+  title: "Duck Flap",
   description:
-    "Game Flappy Bird viết bằng Next.js, React và Canvas 2D. Chơi được trên cả máy tính lẫn điện thoại.",
-  applicationName: "Flappy Bird",
+    "Duck Flap - game kiểu Flappy Bird viết bằng Next.js, React và Canvas 2D. Chơi được trên cả máy tính lẫn điện thoại.",
+  applicationName: "Duck Flap",
   appleWebApp: {
     capable: true,
-    title: "Flappy Bird",
+    title: "Duck Flap",
     statusBarStyle: "black-translucent"
   }
 };
