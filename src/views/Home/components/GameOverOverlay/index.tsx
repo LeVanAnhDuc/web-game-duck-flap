@@ -1,13 +1,5 @@
+// libs
 import { Home as HomeIcon, RotateCcw, Sparkles } from "lucide-react";
-
-type GameOverOverlayProps = {
-  score: number;
-  best: number;
-  isNewBest: boolean;
-  difficultyLabel: string;
-  onRestart: () => void;
-  onMenu: () => void;
-};
 
 /**
  * Màn hình thua. Hai con số đặt cạnh nhau, ngăn bởi một nét kẻ mảnh, để
@@ -23,7 +15,14 @@ const GameOverOverlay = ({
   difficultyLabel,
   onRestart,
   onMenu
-}: GameOverOverlayProps) => (
+}: {
+  score: number;
+  best: number;
+  isNewBest: boolean;
+  difficultyLabel: string;
+  onRestart: () => void;
+  onMenu: () => void;
+}) => (
   <div
     data-testid="gameover-overlay"
     className="pointer-events-none absolute inset-0 flex items-center justify-center p-4"

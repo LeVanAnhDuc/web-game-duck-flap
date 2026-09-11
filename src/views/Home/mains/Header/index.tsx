@@ -1,17 +1,5 @@
+// libs
 import { Trophy, Volume2, VolumeX } from "lucide-react";
-
-type HeaderProps = {
-  /** Điểm cao nhất của độ khó đang chọn. */
-  best: number;
-  soundEnabled: boolean;
-  onToggleSound: () => void;
-  /**
-   * GameStage nhường testid "btn-sound" cho công tắc trong bảng cài đặt
-   * khi bảng đang mở, để trên màn hình luôn chỉ có đúng MỘT nút mang
-   * testid này — và nút đó luôn là nút đang bấm được.
-   */
-  soundTestId?: string;
-};
 
 /**
  * Thanh tiêu đề cao cố định 56px. Đây là component thuần: mọi dữ liệu
@@ -23,7 +11,18 @@ const Header = ({
   soundEnabled,
   onToggleSound,
   soundTestId = "btn-sound"
-}: HeaderProps) => (
+}: {
+  /** Điểm cao nhất của độ khó đang chọn. */
+  best: number;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
+  /**
+   * GameStage nhường testid "btn-sound" cho công tắc trong bảng cài đặt
+   * khi bảng đang mở, để trên màn hình luôn chỉ có đúng MỘT nút mang
+   * testid này — và nút đó luôn là nút đang bấm được.
+   */
+  soundTestId?: string;
+}) => (
   <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/[0.07] bg-[#081C29] pl-4 pr-2">
     <span className="text-[15px] font-semibold tracking-tight text-[#EAF6FB]">
       Duck Flap

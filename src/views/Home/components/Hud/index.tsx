@@ -1,7 +1,3 @@
-type HudProps = {
-  score: number;
-};
-
 /**
  * HUD tối giản: chỉ số điểm, to, canh giữa phía trên. Không viền, không
  * nhãn — mọi thứ khác đều làm rối mắt khi đang bay.
@@ -9,7 +5,7 @@ type HudProps = {
  * `tabular-nums` giữ bề rộng chữ số cố định để con số không "nhảy" mỗi
  * lần ăn điểm; bóng đổ cứng giúp đọc rõ trên cả nền trời sáng lẫn ống xanh.
  */
-const Hud = ({ score }: HudProps) => (
+const Hud = ({ score }: { score: number }) => (
   <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center pt-6">
     <span
       data-testid="hud-score"

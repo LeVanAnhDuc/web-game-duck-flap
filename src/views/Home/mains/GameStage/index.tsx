@@ -1,20 +1,29 @@
 "use client";
 
+// libs
 import { Hand } from "lucide-react";
-import { useCallback, useEffect, useState, type RefObject } from "react";
+import { useCallback, useState } from "react";
+
+// types
+import type { RefObject } from "react";
+
+// hooks
+import { useGameEngine, useHydrated } from "@/hooks";
 
 // components
 import Header from "@/views/Home/mains/Header";
-import GameOverOverlay from "./GameOverOverlay";
-import Hud from "./Hud";
-import MenuOverlay from "./MenuOverlay";
-import PauseOverlay from "./PauseOverlay";
-import SettingsPanel, { DIFFICULTY_LABELS } from "./SettingsPanel";
+import GameOverOverlay from "../../components/GameOverOverlay";
+import Hud from "../../components/Hud";
+import MenuOverlay from "../../components/MenuOverlay";
+import PauseOverlay from "../../components/PauseOverlay";
+import SettingsPanel, {
+  DIFFICULTY_LABELS
+} from "../../components/SettingsPanel";
 
-// hooks
-import { useGameEngine } from "@/hooks/useGameEngine";
+// ghosts
+import CloseOnEscape from "../../ghosts/CloseOnEscape";
 
-// constants
+// others
 import { DEFAULT_SETTINGS } from "@/game/settings/types";
 
 /**
@@ -46,15 +55,9 @@ const GameStage = () => {
 
   /**
    * `best` và `settings` đọc từ localStorage nên lần render đầu ở server
-   * khác với client. Trước khi mount xong ta hiển thị đúng giá trị mặc
-   * định (giống hệt server) rồi mới đổi sang giá trị thật — tránh lệch
-   * hydration mà không cần suppressHydrationWarning.
+   * khác với client — xem `useHydrated`.
    */
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  const hydrated = useHydrated();
 
   const view = hydrated ? settings : DEFAULT_SETTINGS;
   const bestView = hydrated ? best : 0;
@@ -72,25 +75,13 @@ const GameStage = () => {
     startRun();
   }, [startRun]);
 
-  // Esc đóng bảng cài đặt. Engine dùng phím Space/chuột để vỗ cánh nên
-  // hai luồng bàn phím không giẫm chân nhau.
-  useEffect(() => {
-    if (!settingsOpen) {
-      return;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeSettings();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [settingsOpen, closeSettings]);
-
   const { phase, score } = snapshot;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {/* Ghost: chạy side-effect, không vẽ gì. Render vô điều kiện — xem R-04. */}
+      <CloseOnEscape active={settingsOpen} onClose={closeSettings} />
+
       <Header
         best={bestView}
         soundEnabled={view.soundEnabled}

@@ -1,14 +1,5 @@
+// libs
 import { Play, Settings, Volume2, VolumeX } from "lucide-react";
-
-type MenuOverlayProps = {
-  /** Kỷ lục của ĐỘ KHÓ ĐANG CHỌN, không phải kỷ lục chung. */
-  best: number;
-  difficultyLabel: string;
-  soundEnabled: boolean;
-  onPlay: () => void;
-  onOpenSettings: () => void;
-  onToggleSound: () => void;
-};
 
 /**
  * Màn hình chờ. Cả lớp phủ để pointer-events-none, chỉ các nút mới nhận
@@ -21,7 +12,15 @@ const MenuOverlay = ({
   onPlay,
   onOpenSettings,
   onToggleSound
-}: MenuOverlayProps) => (
+}: {
+  /** Kỷ lục của ĐỘ KHÓ ĐANG CHỌN, không phải kỷ lục chung. */
+  best: number;
+  difficultyLabel: string;
+  soundEnabled: boolean;
+  onPlay: () => void;
+  onOpenSettings: () => void;
+  onToggleSound: () => void;
+}) => (
   <div
     data-testid="menu-overlay"
     className="pointer-events-none absolute inset-0 flex items-center justify-center p-4"

@@ -1,14 +1,11 @@
+// libs
 import { Play } from "lucide-react";
-
-type PauseOverlayProps = {
-  onResume: () => void;
-};
 
 /**
  * Tạm dừng phải NHÌN THẤY được. Nếu chỉ đóng băng vòng lặp mà không hiện
  * gì, người chơi lỡ chạm phím P sẽ tưởng game bị treo.
  */
-const PauseOverlay = ({ onResume }: PauseOverlayProps) => (
+const PauseOverlay = ({ onResume }: { onResume: () => void }) => (
   <div
     data-testid="pause-overlay"
     className="pointer-events-none absolute inset-0 flex items-center justify-center p-4"

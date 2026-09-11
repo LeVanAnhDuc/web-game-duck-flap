@@ -1,0 +1,4 @@
+# husky giu core.hooksPath (= .husky/_), nen .githooks/commit-msg KHONG BAO GIO chay.
+# Hook nay goi thang script kiem tra o do, de commit-lint song lai o may local.
+# Mot repo chi duoc co MOT co che hook — xem R-22 trong code-conventions.md.
+bash .githooks/commit-lint.sh --file "$1"

@@ -1,7 +1,13 @@
+// libs
 import { Info, Volume2, VolumeX, X } from "lucide-react";
 
-import { DIFFICULTIES } from "@/game/core/constants";
+// types
 import type { Difficulty } from "@/game/core/types";
+
+// game
+import { DIFFICULTIES } from "@/game/core/constants";
+
+// others
 import { cn } from "@/lib/utils";
 
 /** Nhãn tiếng Việt của từng độ khó, dùng chung cho mọi overlay. */
@@ -9,14 +15,6 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   easy: "Dễ",
   normal: "Thường",
   hard: "Khó"
-};
-
-type SettingsPanelProps = {
-  difficulty: Difficulty;
-  soundEnabled: boolean;
-  onSelectDifficulty: (difficulty: Difficulty) => void;
-  onToggleSound: () => void;
-  onClose: () => void;
 };
 
 /**
@@ -30,7 +28,13 @@ const SettingsPanel = ({
   onSelectDifficulty,
   onToggleSound,
   onClose
-}: SettingsPanelProps) => (
+}: {
+  difficulty: Difficulty;
+  soundEnabled: boolean;
+  onSelectDifficulty: (difficulty: Difficulty) => void;
+  onToggleSound: () => void;
+  onClose: () => void;
+}) => (
   <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-[#04121C]/70 p-4 backdrop-blur-sm duration-150 animate-in fade-in">
     <div
       data-testid="settings-panel"
