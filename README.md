@@ -18,6 +18,8 @@ No server, no sign-in: your records stay on your own device.
   - Tap, click or press Space to flap; slip through the gap between pipes and stay off the ground
   - Hitting the ceiling only stops you, it does not kill you — the same forgiveness the original had
   - The hitbox is smaller than the bird you see, so a near miss reads as "just made it" instead of "cheated"
+  - The start screen beats out the flap rhythm, so first-timers learn that a tap is a beat and not a one-off command
+  - A run that ends on zero says why the duck fell, instead of leaving you to blame the device
 
 - **Three difficulties, three separate record tables**
 
@@ -34,13 +36,14 @@ No server, no sign-in: your records stay on your own device.
 - **Built for touch as much as for a keyboard**
 
   - Flap with `Space`, `↑`, `W`, a mouse click or a tap
+  - `Space` starts a run straight from the menu, and Play holds focus from the first frame, so a keyboard never has to hunt for the button
   - Double-tap zoom, pull-to-refresh and text selection are all suppressed over the play area, so fast tapping stays fast tapping
   - Overlays never swallow a tap — only their buttons take pointer events
 
 - **Pause, and never lose a run by accident**
 
   - `P` or `Esc` freezes the run and says so on screen
-  - Switching browser tabs pauses the game by itself, so you do not come back to a dead bird
+  - Switching browser tabs pauses the game by itself, so you do not come back to a dead bird — including the sliver of a frame between your first flap and the run proper
 
 - **Sound without a single audio file**
 

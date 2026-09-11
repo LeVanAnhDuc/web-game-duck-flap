@@ -26,11 +26,23 @@ const MenuOverlay = ({
     className="pointer-events-none absolute inset-0 flex items-center justify-center p-4"
   >
     <div className="w-[min(100%,320px)] rounded-2xl border border-white/10 bg-[#0A2130]/85 p-6 text-center shadow-2xl backdrop-blur-md duration-200 animate-in fade-in zoom-in-95">
-      <h1 className="text-[34px] font-black leading-none tracking-[-0.03em] text-[#EAF6FB]">
+      {/*
+        Người lạ cần biết TRÒ NÀY LÀ GÌ trước khi cần biết nó TÊN GÌ. Tên
+        thương hiệu là tiếng Anh, và người trình độ số thấp không đọc được
+        nó — nên câu giải thích được kéo to và sáng lên, tên game nhường lại
+        một bậc. Vẫn là h1, chỉ đổi sức nặng thị giác.
+      */}
+      <h1
+        data-testid="menu-title"
+        className="text-[28px] font-black leading-none tracking-[-0.03em] text-[#EAF6FB]"
+      >
         Duck Flap
       </h1>
-      <p className="mt-3 text-sm leading-relaxed text-[#8FB3C4]">
-        Chạm để bay lên, luồn qua khe giữa hai ống, đừng chạm đất.
+      <p
+        data-testid="menu-tagline"
+        className="mt-3 text-base leading-relaxed text-[#C6DAE4]"
+      >
+        Chạm liên tục để bay lên, luồn qua khe giữa hai ống, đừng chạm đất.
       </p>
 
       <div className="mt-5 flex items-baseline justify-center gap-2 border-t border-white/10 pt-4">
@@ -45,7 +57,14 @@ const MenuOverlay = ({
         </span>
       </div>
 
+      {/*
+        autoFocus: trong DOM, Header đứng trước vùng chơi nên Tab lần đầu
+        rơi vào nút tắt tiếng thay vì hành động chính. Đặt tiêu điểm sẵn ở
+        đây rẻ hơn và ít vỡ hơn là đi vá tabindex khắp nơi.
+      */}
+      {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
       <button
+        autoFocus
         type="button"
         data-testid="btn-play"
         onClick={onPlay}
@@ -71,13 +90,19 @@ const MenuOverlay = ({
           onClick={onToggleSound}
           aria-pressed={soundEnabled}
           aria-label={soundEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
-          className="pointer-events-auto flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[#C6DAE4] transition-colors hover:border-white/20 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD866] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2130] active:bg-white/[0.12]"
+          className="pointer-events-auto flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-[#C6DAE4] transition-colors hover:border-white/20 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD866] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A2130] active:bg-white/[0.12]"
         >
           {soundEnabled ? (
             <Volume2 className="size-5" aria-hidden="true" />
           ) : (
             <VolumeX className="size-5" aria-hidden="true" />
           )}
+          {/*
+            Hình cái loa một mình không nói được ĐANG bật hay ĐANG tắt —
+            người sợ tiếng động phải bấm thử mới biết, đúng thứ họ muốn
+            tránh. Chữ này là trạng thái hiện tại, không phải hành động.
+          */}
+          <span data-testid="sound-state">{soundEnabled ? "Bật" : "Tắt"}</span>
         </button>
       </div>
     </div>

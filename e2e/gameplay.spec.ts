@@ -15,11 +15,19 @@ test.describe("Luồng chơi", () => {
     await gotoGame(page);
 
     await enterReady(page);
+
+    /**
+     * Kiểm điểm số TRƯỚC khi vỗ cánh. Ở "ready" con chim chưa rơi nên
+     * không có đồng hồ đếm ngược nào chạy; vỗ cánh xong thì chim chỉ sống
+     * khoảng một giây rưỡi, và dưới tải nặng Playwright hỏi tới nơi thì
+     * HUD đã tháo mất rồi — đó là chập chờn, không phải lỗi sản phẩm.
+     */
+    await expect(page.getByTestId("hud-score")).toBeVisible();
+
     await flapWithKeyboard(page);
 
     // Rời "ready" là lời hướng dẫn phải biến mất, nhường chỗ cho điểm số.
     await expect(page.getByTestId("ready-overlay")).toBeHidden();
-    await expect(page.getByTestId("hud-score")).toBeVisible();
 
     await expectGameOver(page);
   });

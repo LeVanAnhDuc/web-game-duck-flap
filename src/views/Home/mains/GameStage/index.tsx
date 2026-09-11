@@ -132,12 +132,31 @@ const GameStage = () => {
               data-testid="ready-overlay"
               className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#EAF6FB] duration-300 animate-in fade-in"
             >
-              <Hand
-                className="size-8 animate-bounce motion-reduce:animate-none"
-                aria-hidden="true"
-              />
+              {/*
+                Ba bàn tay nảy lệch pha nhau, không phải một. Một cái đơn lẻ
+                đọc ra là "chạm một lần rồi đợi" — đã có người chơi làm đúng
+                như vậy: chạm một cái, ngồi nhìn, rồi thua mà không hiểu vì
+                sao. Nhịp phải nhìn thấy được trước khi người ta chạm.
+              */}
+              <div className="flex items-end gap-2" aria-hidden="true">
+                {[0, 150, 300].map((delay) => (
+                  <Hand
+                    key={delay}
+                    className="size-7 animate-bounce motion-reduce:animate-none"
+                    style={{ animationDelay: `${delay}ms` }}
+                  />
+                ))}
+              </div>
               <p className="text-lg font-semibold [text-shadow:0_2px_0_rgba(6,21,32,0.6)]">
-                Chạm để bay
+                Chạm liên tục để bay
+              </p>
+              {/*
+                Chữ này nằm đè lên nền trời SÁNG, không phải trên thẻ tối như
+                mọi lớp phủ khác — xám nhạt ở đây là không đọc nổi với người
+                thị lực kém. Dùng màu sáng nhất cộng bóng đổ đặc hơn.
+              */}
+              <p className="max-w-[15rem] text-center text-sm font-medium text-[#EAF6FB] [text-shadow:0_2px_4px_rgba(6,21,32,0.9)]">
+                Mỗi lần chạm nâng vịt lên một chút. Ngừng chạm là vịt rơi.
               </p>
             </div>
           )}

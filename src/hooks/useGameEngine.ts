@@ -66,6 +66,13 @@ export const useGameEngine = (): UseGameEngineResult => {
   const pausedRef = useRef(false);
 
   /**
+   * `beginRun` khai báo bên dưới effect dựng engine, mà effect đó chỉ chạy
+   * một lần nên closure của nó không thấy được hàm ấy. Giữ qua ref để phím
+   * Space ở menu luôn gọi đúng bản mới nhất.
+   */
+  const beginRunRef = useRef<() => void>(() => undefined);
+
+  /**
    * Tạm dừng có nghĩa trong cả "ready" lẫn "playing" — tức là suốt một lượt
    * chơi. Không gộp "ready" vào thì lệnh dừng ngay sau cú vỗ đầu tiên sẽ bị
    * nuốt: phase chỉ chuyển sang "playing" ở bước mô phỏng kế tiếp, còn phím
@@ -155,6 +162,18 @@ export const useGameEngine = (): UseGameEngineResult => {
       onFlap: () => {
         engine.flap();
       },
+      /**
+       * Space ở màn hình chờ phải vào được lượt chơi: người dùng bàn phím
+       * không có cách nào khác ngoài Tab tới đúng nút, và cả thể loại game
+       * này dạy người ta bấm Space. Chỉ áp cho bàn phím — xem `input.ts`.
+       */
+      onKeyboardFlap: () => {
+        if (engine.getSnapshot().phase === "menu") {
+          beginRunRef.current();
+          return;
+        }
+        engine.flap();
+      },
       onPause: togglePause
     });
 
@@ -202,6 +221,8 @@ export const useGameEngine = (): UseGameEngineResult => {
     engine.startRun();
     engine.start();
   }, []);
+
+  beginRunRef.current = beginRun;
 
   const toMenu = useCallback(() => {
     pausedRef.current = false;

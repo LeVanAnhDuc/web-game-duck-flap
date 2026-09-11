@@ -258,7 +258,17 @@ export class GameEngine {
          * Không dừng thì người chơi quay lại sẽ thấy chim đã chết oan —
          * hoặc thấy một cú nhảy thời gian dồn cục.
          */
-        if (this.state.phase === "playing" && this.rafId !== null) {
+        /**
+         * Phải gồm cả "ready", không chỉ "playing". Phase chỉ chuyển sang
+         * "playing" ở bước mô phỏng KẾ TIẾP sau cú vỗ đầu tiên, còn việc
+         * chuyển tab thì tới ngay lập tức — nên ai vỗ một cái rồi chuyển
+         * tab liền sẽ rơi đúng vào khe hở đó và mất lượt, trong khi người
+         * chuyển tab muộn hơn vài mili-giây lại được cứu. `togglePause`
+         * trong `useGameEngine` đã gộp "ready" vì đúng lý do này.
+         */
+        const inRun =
+          this.state.phase === "playing" || this.state.phase === "ready";
+        if (inRun && this.rafId !== null) {
           this.resumeOnVisible = true;
           this.stop();
         }

@@ -1,6 +1,13 @@
 export type InputBindingOptions = {
   target: HTMLElement;
   onFlap: () => void;
+  /**
+   * Phím vỗ cánh, tách riêng khỏi cú chạm. Ở màn hình chờ, Space phải bắt
+   * đầu lượt chứ không rơi vào hư không — nhưng cú CHẠM thì không được làm
+   * vậy, vì mọi cú chạm hụt vào nền menu sẽ ném người chơi thẳng vào lượt
+   * mới. Không khai báo thì rơi về `onFlap`.
+   */
+  onKeyboardFlap?: () => void;
   /** Bấm phím P hoặc Escape — tầng trên tự quyết làm gì. */
   onPause?: () => void;
 };
@@ -24,7 +31,7 @@ const isTypingTarget = (target: EventTarget | null): boolean => {
 };
 
 export const bindInput = (options: InputBindingOptions): (() => void) => {
-  const { target, onFlap, onPause } = options;
+  const { target, onFlap, onKeyboardFlap, onPause } = options;
 
   if (typeof window === "undefined") {
     return () => undefined;
@@ -38,7 +45,7 @@ export const bindInput = (options: InputBindingOptions): (() => void) => {
     if (FLAP_CODES.has(event.code)) {
       // Không chặn thì Space cuộn trang xuống mỗi lần vỗ cánh.
       event.preventDefault();
-      onFlap();
+      (onKeyboardFlap ?? onFlap)();
       return;
     }
     if (onPause && PAUSE_CODES.has(event.code)) {
