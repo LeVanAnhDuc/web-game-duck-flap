@@ -1,47 +1,74 @@
-import { expect, test } from "@/fixtures";
+import { test, expect } from "@/fixtures";
+import { copy } from "@/data/copy";
+import { FALL_MS, STORAGE, type Difficulty } from "@/data/test-data";
 
-import { bestKey, gotoGame, readStoredSettings } from "../gameplay/helpers";
+// Design spec §7 + README: Easy / Normal / Hard change the game and each keeps its own record table; the choice is
+// remembered between visits.
 
-test.describe("Cài đặt", () => {
-  test("chọn độ khó Khó thì lần sau mở game vẫn giữ nguyên", async ({
-    page
-  }) => {
-    await gotoGame(page);
+test("đổi độ khó thì kỷ lục đang hiển thị đổi theo bảng của mức đó", { tag: ["@TC-SETTINGS-004", "@smoke"] }, async ({
+  gamePage,
+}) => {
+  await gamePage.goto({ storage: { [STORAGE.best("normal")]: "7", [STORAGE.best("hard")]: "2" } });
+  // the default is Normal, so the record shown is Normal's
+  await expect(gamePage.headerBest()).toHaveText("7");
+  await expect(gamePage.menu()).toContainText(copy.menu.best("normal"));
+  await expect(gamePage.overlayBest()).toHaveText("7");
 
-    await page.getByTestId("btn-settings").click();
-    await expect(page.getByTestId("settings-panel")).toBeVisible();
+  await gamePage.settings.open();
+  await gamePage.settings.choose("hard");
+  await gamePage.settings.closeButton().click();
 
-    await page.getByTestId("btn-difficulty-hard").click();
-    await expect(page.getByTestId("btn-difficulty-hard")).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+  await expect(gamePage.headerBest()).toHaveText("2");
+  await expect(gamePage.menu()).toContainText(copy.menu.best("hard"));
+  await expect(gamePage.overlayBest()).toHaveText("2");
+});
 
-    await page.getByTestId("btn-close-settings").click();
-    await expect(page.getByTestId("settings-panel")).toBeHidden();
+test("chọn mức Khó thì lần sau mở game vẫn giữ nguyên", { tag: ["@TC-SETTINGS-005", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.goto();
+  await gamePage.settings.open();
+  await gamePage.settings.choose("hard");
+  await gamePage.settings.closeButton().click();
 
-    await page.reload();
+  await gamePage.reload();
+  await expect(gamePage.menu()).toContainText(copy.menu.best("hard"));
+  await gamePage.settings.open();
+  await expect(gamePage.settings.difficulty("hard")).toHaveAttribute("aria-pressed", "true");
+});
 
-    // Người chơi quay lại phải thấy đúng độ khó mình đã chọn.
-    await expect(page.getByText("Kỷ lục mức Khó")).toBeVisible();
-    expect(await readStoredSettings(page)).toMatchObject({
-      difficulty: "hard"
-    });
-  });
+test("lượt kế tiếp chơi ở độ khó vừa chọn", { tag: ["@TC-SETTINGS-006"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.settings.open();
+  await gamePage.settings.choose("easy");
+  await gamePage.settings.closeButton().click();
+  await gamePage.playUntilGameOver();
+  await expect(gamePage.gameOverCard()).toContainText(copy.gameOver.level("easy"));
+});
 
-  test("mỗi độ khó có bảng kỷ lục riêng", async ({ page }) => {
-    await gotoGame(page, {
-      [bestKey("normal")]: "7",
-      [bestKey("hard")]: "2"
-    });
-
-    // Mặc định là mức Thường nên kỷ lục hiển thị phải là của mức đó.
-    await expect(page.getByTestId("best-score")).toHaveText("7");
-
-    await page.getByTestId("btn-settings").click();
-    await page.getByTestId("btn-difficulty-hard").click();
-
-    // Đổi độ khó là đổi luôn bảng kỷ lục, không phải giữ con số cũ.
-    await expect(page.getByTestId("best-score")).toHaveText("2");
-  });
+test("khe hẹp dần và ống trôi nhanh dần theo Dễ, Thường, Khó", { tag: ["@TC-SETTINGS-007"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  const measured: Record<Difficulty, { gap: number; travel: number }> = {} as never;
+  for (const d of ["easy", "normal", "hard"] as const) {
+    await gamePage.settings.open();
+    await gamePage.settings.choose(d);
+    await gamePage.settings.closeButton().click();
+    await gamePage.play();
+    await gamePage.flap();
+    await gamePage.advance(300);
+    const first = (await gamePage.readWorld()).pipes[0];
+    await gamePage.flap();
+    await gamePage.advance(300);
+    const later = (await gamePage.readWorld()).pipes[0];
+    measured[d] = { gap: first.gapBottom - first.gapTop, travel: first.left - later.left };
+    await gamePage.advance(FALL_MS);
+    await expect(gamePage.gameOver()).toBeVisible();
+    await gamePage.toMenuButton().click();
+    await expect(gamePage.menu()).toBeVisible();
+  }
+  test.info().annotations.push({ type: "measured", description: JSON.stringify(measured) });
+  expect(measured.easy.gap).toBeGreaterThan(measured.normal.gap);
+  expect(measured.normal.gap).toBeGreaterThan(measured.hard.gap);
+  expect(measured.easy.travel).toBeLessThan(measured.normal.travel);
+  expect(measured.normal.travel).toBeLessThan(measured.hard.travel);
 });
