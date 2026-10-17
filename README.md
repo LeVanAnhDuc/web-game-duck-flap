@@ -94,11 +94,17 @@ pnpm dev
 # Run the unit tests (Vitest)
 pnpm test
 
-# Run the browser tests (Playwright)
-pnpm test:e2e
-
 # Build a static site (output: client/out/)
 pnpm build
+```
+
+The browser regression suite (Playwright) is its own package in `automation-testing/`;
+it builds and serves the static export by itself:
+
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test
 ```
 
 ## How it is put together
@@ -107,7 +113,7 @@ pnpm build
 - **Rendering**: Canvas 2D, drawn procedurally — no sprite sheet, no asset files
 - **Styling**: Tailwind CSS v3, lucide-react icons
 - **Audio**: WebAudio API (oscillator + gain envelope)
-- **Testing**: Vitest + Playwright (Desktop Chrome and Pixel 7)
+- **Testing**: Vitest in `client/`; Playwright regression suite in `automation-testing/` (Desktop Chrome and Pixel 7)
 - **Build & Deploy**: static export, deployed to GitHub Pages by GitHub Actions
 
 ## Project structure
@@ -166,8 +172,9 @@ score changes, not sixty times a second.
 
 Pushing to `main` runs two workflows:
 
-- `.github/workflows/deploy.yml` — runs the unit tests, then the browser tests,
-  builds a static export with the GitHub Pages base path, and publishes it
+- `.github/workflows/deploy.yml` — runs lint and the unit tests, builds a static
+  export with the GitHub Pages base path, and publishes it (the browser suite gates
+  the pull request in `ci.yml`)
 - `.github/workflows/release.yml` — reads the Conventional Commit prefixes since
   the last tag, bumps the version accordingly, and cuts a GitHub release with
   generated notes

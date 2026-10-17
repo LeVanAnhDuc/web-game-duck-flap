@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@/fixtures";
 
-import { gotoGame } from "./helpers";
+import { gotoGame } from "../gameplay/helpers";
 
 const ISSUER = "http://ducker.test";
 const CORS = { "access-control-allow-origin": "*" };
@@ -215,7 +215,7 @@ for (const width of [320, 375]) {
       viewport: { width, height: 700 }
     });
     const idlePage = await noJs.newPage();
-    await idlePage.goto(`${baseURL}/`);
+    await idlePage.goto(baseURL!);
     await expect(idlePage.getByTestId("btn-ducker-sign-in")).toBeDisabled();
     await assertHeaderFits(idlePage, width, "idle");
     await noJs.close();

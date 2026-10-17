@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@/fixtures";
 
-import { enterReady, expectGameOver, gotoGame } from "./helpers";
+import { enterReady, expectGameOver, gotoGame } from "../gameplay/helpers";
 
 test.describe("Thao tác vỗ cánh", () => {
   test("chạm giữa vùng chơi ở màn sẵn sàng thì bắt đầu bay", async ({

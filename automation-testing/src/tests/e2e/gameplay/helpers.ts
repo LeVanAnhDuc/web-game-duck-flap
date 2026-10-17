@@ -50,7 +50,7 @@ export const gotoGame = async (
     { entries: seed, flag: SEED_FLAG }
   );
 
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.getByTestId("menu-overlay")).toBeVisible();
 };
 

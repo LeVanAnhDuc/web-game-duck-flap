@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@/fixtures";
 
-import { bestKey, gotoGame, readStoredSettings } from "./helpers";
+import { bestKey, gotoGame, readStoredSettings } from "../gameplay/helpers";
 
 test.describe("Cài đặt", () => {
   test("chọn độ khó Khó thì lần sau mở game vẫn giữ nguyên", async ({

@@ -17,6 +17,6 @@ export default defineConfig({
      */
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
-    exclude: ["node_modules", ".next", "e2e"]
+    exclude: ["node_modules", ".next"]
   }
 });

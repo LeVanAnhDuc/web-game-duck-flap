@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "@/fixtures";
 
-import { gotoGame } from "./helpers";
+import { gotoGame } from "../gameplay/helpers";
 
 test("flag off: no sign-in button and no request to any outside origin", async ({
   page,

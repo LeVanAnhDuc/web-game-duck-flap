@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:e2e-auth": "node scripts/build-e2e-auth.mjs",
     "start": "next start",
     "lint": "next lint",
     "lint-staged": "lint-staged",
@@ -16,7 +17,6 @@
     "prepare": "cd .. && husky client/.husky",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test && playwright test -c playwright.auth.config.ts",
     "typecheck": "tsc --noEmit",
     "release:next": "pnpm dlx git-cliff@2.13.1 --workdir .. --bumped-version",
     "release:notes": "pnpm dlx git-cliff@2.13.1 --workdir .. --unreleased --tag $(pnpm dlx git-cliff@2.13.1 --workdir .. --bumped-version) --strip all"
@@ -38,7 +38,6 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
     "@types/node": "^20",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
