@@ -1,79 +1,113 @@
-import { expect, test } from "@/fixtures";
+import { test, expect } from "@/fixtures";
+import { copy } from "@/data/copy";
+import { FALL_MS } from "@/data/test-data";
 
-import {
-  enterReady,
-  expectGameOver,
-  flapWithKeyboard,
-  gotoGame,
-  playUntilGameOver
-} from "./helpers";
+// Design spec §5: menu → ready → playing → gameover → (restart) ready. Time-dependent cases run on the paused fake
+// clock (gamePage.useFakeClock), so "a bird left alone lands" and "the ready screen waits forever" take no real time.
 
-test.describe("Luồng chơi", () => {
-  test("người chơi bấm Chơi, vỗ cánh rồi để chim rơi và thua", async ({
-    page
-  }) => {
-    await gotoGame(page);
+test("mở trang là màn chờ với tên game, lời giải thích, kỷ lục và ba nút", { tag: ["@TC-GAMEPLAY-001", "@smoke"] }, async ({
+  gamePage,
+}) => {
+  await gamePage.goto();
+  await expect(gamePage.menuTitle()).toHaveText(copy.menu.title);
+  await expect(gamePage.menuTagline()).toHaveText(copy.menu.tagline);
+  await expect(gamePage.menu()).toContainText(copy.menu.best("normal"));
+  await expect(gamePage.overlayBest()).toHaveText("0");
+  await expect(gamePage.playButton()).toBeVisible();
+  await expect(gamePage.settingsButton()).toBeVisible();
+  await expect(gamePage.menuSound()).toBeVisible();
+  await expect(gamePage.hudScore()).toHaveCount(0);
+});
 
-    await enterReady(page);
+test("bấm Chơi vào màn sẵn sàng, chim đợi mãi không rơi", { tag: ["@TC-GAMEPLAY-002", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
+  await expect(gamePage.ready()).toContainText(copy.ready.title);
+  await expect(gamePage.ready()).toContainText(copy.ready.hint);
+  await expect(gamePage.hudScore()).toHaveText("0");
 
-    /**
-     * Kiểm điểm số TRƯỚC khi vỗ cánh. Ở "ready" con chim chưa rơi nên
-     * không có đồng hồ đếm ngược nào chạy; vỗ cánh xong thì chim chỉ sống
-     * khoảng một giây rưỡi, và dưới tải nặng Playwright hỏi tới nơi thì
-     * HUD đã tháo mất rồi — đó là chập chờn, không phải lỗi sản phẩm.
-     */
-    await expect(page.getByTestId("hud-score")).toBeVisible();
+  await gamePage.advance(5_000);
+  await expect(gamePage.ready()).toBeVisible();
+  await expect(gamePage.gameOver()).toHaveCount(0);
+  // it only bobs in place around the middle of the sky (y = 200 of a 400-high flight zone)
+  const { birdY } = await gamePage.readWorld();
+  expect(birdY).not.toBeNull();
+  expect(Math.abs(birdY! - 200)).toBeLessThan(20);
+});
 
-    await flapWithKeyboard(page);
+test("vỗ cánh đầu tiên bắt đầu lượt và ống trôi vào", { tag: ["@TC-GAMEPLAY-003", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
+  expect((await gamePage.readWorld()).pipes).toEqual([]);
+  await gamePage.flap();
+  await gamePage.advance(500);
+  await expect(gamePage.ready()).toBeHidden();
+  await expect(gamePage.hudScore()).toBeVisible();
+  expect((await gamePage.readWorld()).pipes.length).toBeGreaterThan(0);
+});
 
-    // Rời "ready" là lời hướng dẫn phải biến mất, nhường chỗ cho điểm số.
-    await expect(page.getByTestId("ready-overlay")).toBeHidden();
+test("không vỗ nữa thì chim rơi xuống đất và hiện màn thua", { tag: ["@TC-GAMEPLAY-004", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
+  await gamePage.flap();
+  await gamePage.advance(FALL_MS);
+  await expect(gamePage.gameOverCard()).toContainText(copy.gameOver.title);
+  await expect(gamePage.gameOverCard()).toContainText(copy.gameOver.level("normal"));
+  await expect(gamePage.gameOverScore()).toHaveText("0");
+  await expect(gamePage.overlayBest()).toHaveText("0");
+  await expect(gamePage.hudScore()).toHaveCount(0);
+  await expect(gamePage.ready()).toHaveCount(0);
+});
 
-    await expectGameOver(page);
+test("chạm trần chỉ bị chặn lại, lượt vẫn tiếp tục", { tag: ["@TC-GAMEPLAY-005"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
+  // 1.5 s of flapping: the first pipe reaches the bird at ~1.7 s, and a top pipe would kill a bird at the ceiling
+  for (let i = 0; i < 15; i += 1) {
+    await gamePage.flap();
+    await gamePage.advance(100);
+  }
+  await expect(gamePage.gameOver()).toHaveCount(0);
+  const { birdY } = await gamePage.readWorld();
+  expect(birdY).not.toBeNull();
+  expect(birdY!).toBeLessThanOrEqual(16);
+});
+
+test("Chơi lại sau khi thua thì vào lượt mới với điểm 0", { tag: ["@TC-GAMEPLAY-006", "@smoke"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.playUntilGameOver();
+  await gamePage.restartButton().click();
+  await expect(gamePage.ready()).toBeVisible();
+  await expect(gamePage.hudScore()).toHaveText("0");
+  await expect(gamePage.gameOver()).toHaveCount(0);
+});
+
+test("Về menu sau khi thua thì quay lại màn chờ", { tag: ["@TC-GAMEPLAY-007"] }, async ({ gamePage }) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.playUntilGameOver();
+  await gamePage.toMenuButton().click();
+  await expect(gamePage.menu()).toBeVisible();
+  await expect(gamePage.gameOver()).toHaveCount(0);
+});
+
+test("chơi hai lượt liền không sinh lỗi nào trên console", { tag: ["@TC-GAMEPLAY-011"] }, async ({ page, gamePage }) => {
+  const problems: string[] = [];
+  // listeners before navigation, or errors during load slip through
+  page.on("console", (m) => {
+    if (m.type() === "error") problems.push(`console.error: ${m.text()}`);
   });
-
-  test("bấm Chơi lại sau khi thua thì vào lượt mới với điểm 0", async ({
-    page
-  }) => {
-    await gotoGame(page);
-    await playUntilGameOver(page);
-
-    await page.getByTestId("btn-restart").click();
-
-    await expect(page.getByTestId("ready-overlay")).toBeVisible();
-    // Điểm phải được đặt lại, nếu không lượt mới sẽ cộng dồn lượt cũ.
-    await expect(page.getByTestId("hud-score")).toHaveText("0");
-  });
-
-  test("bấm Về menu sau khi thua thì quay lại màn hình chờ", async ({
-    page
-  }) => {
-    await gotoGame(page);
-    await playUntilGameOver(page);
-
-    await page.getByTestId("btn-menu").click();
-
-    await expect(page.getByTestId("menu-overlay")).toBeVisible();
-    await expect(page.getByTestId("gameover-overlay")).toBeHidden();
-  });
-
-  test("nhấn P để tạm dừng rồi bấm Tiếp tục thì game chạy tiếp", async ({
-    page
-  }) => {
-    await gotoGame(page);
-    await enterReady(page);
-
-    // Vỗ cánh xong tạm dừng ngay: lúc dừng thế giới đóng băng nên không
-    // có nguy cơ chim chết trong lúc test đang kiểm tra lớp phủ.
-    await flapWithKeyboard(page);
-    await page.keyboard.press("p");
-
-    await expect(page.getByTestId("pause-overlay")).toBeVisible();
-
-    await page.getByTestId("btn-resume").click();
-    await expect(page.getByTestId("pause-overlay")).toBeHidden();
-
-    // Bằng chứng game thật sự chạy tiếp chứ không kẹt ở trạng thái đóng băng.
-    await expectGameOver(page);
-  });
+  page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
+  await gamePage.goto();
+  await gamePage.playUntilGameOver();
+  await gamePage.restartButton().click();
+  await expect(gamePage.ready()).toBeVisible();
+  await gamePage.flap();
+  await expect(gamePage.gameOver()).toBeVisible({ timeout: 15_000 });
+  expect(problems).toEqual([]);
 });
