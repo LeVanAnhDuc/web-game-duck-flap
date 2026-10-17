@@ -41,10 +41,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
-      # The unit tests never touch the DOM, so the browser suite is what
-      # actually stops a broken interface from shipping.
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      # The browser regression suite (automation-testing/) gates every pull
+      # request in ci.yml; this workflow only runs after the merge.
 
       - run: pnpm build
         env:
