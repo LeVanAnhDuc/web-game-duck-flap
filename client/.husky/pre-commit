@@ -1,0 +1,2 @@
+# Hook chay o goc repo; app (va lint-staged + ESLint config) nam o client/.
+cd client && pnpm exec lint-staged

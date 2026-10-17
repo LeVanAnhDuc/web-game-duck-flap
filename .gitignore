@@ -1,17 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# The game app lives in client/, the regression suite in automation-testing/: the
+# toolchain patterns below are unanchored so they hold in both.
 
 # dependencies
-/node_modules
+node_modules/
 
 # testing
-/coverage
+/client/coverage/
 
 # next.js
-/.next/
-/out/
+.next/
+/client/out/
+/client/out-auth/
 
 # production
-/build
+/client/build/
 
 # misc
 .DS_Store
@@ -34,13 +37,14 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# testing
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+# Playwright (automation-testing/ and any local MCP session)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.auth/
 # Playwright MCP do snapshot trang ra day moi lan chay, khong phai file cua project
-/.playwright-mcp/
+.playwright-mcp/
 
 # --- Claude Code: theo doi config + skills, bo qua worktrees/doc-state ---
 /.claude/*

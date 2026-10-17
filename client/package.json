@@ -13,13 +13,13 @@
     "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --format=pretty ./src ",
     "lint:js": "eslint --cache --ext .js,.jsx,.ts,.tsx --format=pretty ./src",
     "lint:prettier": "prettier -c --write \"**/**.{js,jsx,tsx,ts,less,md,json}\" --end-of-line auto",
-    "prepare": "husky",
+    "prepare": "cd .. && husky client/.husky",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test && playwright test -c playwright.auth.config.ts",
     "typecheck": "tsc --noEmit",
-    "release:next": "pnpm dlx git-cliff@2.13.1 --bumped-version",
-    "release:notes": "pnpm dlx git-cliff@2.13.1 --unreleased --tag $(pnpm dlx git-cliff@2.13.1 --bumped-version) --strip all"
+    "release:next": "pnpm dlx git-cliff@2.13.1 --workdir .. --bumped-version",
+    "release:notes": "pnpm dlx git-cliff@2.13.1 --workdir .. --unreleased --tag $(pnpm dlx git-cliff@2.13.1 --workdir .. --bumped-version) --strip all"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": "pnpm lint-staged:js",

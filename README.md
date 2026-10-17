@@ -64,7 +64,7 @@ No server and no game accounts: your records stay on your own device.
 
 ## Optional Ducker ID sign-in (local only)
 
-Copy `.env.example` to `.env` and fill in `NEXT_PUBLIC_DUCKER_CLIENT_ID`. The button
+Copy `client/.env.example` to `client/.env` and fill in `NEXT_PUBLIC_DUCKER_CLIENT_ID`. The button
 only renders when `NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN=true` and all four
 `NEXT_PUBLIC_DUCKER_*` values are set; the deploy workflow passes none of them.
 `NEXT_PUBLIC_BASE_PATH` replaces the old `GITHUB_PAGES` switch.
@@ -80,7 +80,11 @@ only renders when `NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN=true` and all four
 
 **Requires**: Node.js 18+
 
+The game app lives in `client/`; run these from there.
+
 ```bash
+cd client
+
 # Install dependencies
 pnpm install
 
@@ -93,7 +97,7 @@ pnpm test
 # Run the browser tests (Playwright)
 pnpm test:e2e
 
-# Build a static site (output: out/)
+# Build a static site (output: client/out/)
 pnpm build
 ```
 
@@ -108,12 +112,12 @@ pnpm build
 
 ## Project structure
 
-The rule that shapes everything: **`src/game/` never imports React.** It is a
+The rule that shapes everything: **`client/src/game/` never imports React.** It is a
 standalone TypeScript library that runs under Node, which is why every rule of
 the game can be checked without a browser.
 
 ```
-src/
+client/src/
 ├── game/
 │   ├── core/       # Pure functions: physics, pipe spawning, collision, scoring, world step
 │   │   ├── world.ts        # stepWorld(state, dt, input) -> state
