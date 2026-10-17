@@ -16,6 +16,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The game app lives in client/; every `run:` step works from there.
+defaults:
+  run:
+    working-directory: client
+
 jobs:
   verify:
     name: Lint, types, unit tests
@@ -23,10 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # No package.json at the root: the app lives in client/.
+          package_json_file: client/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
@@ -37,29 +46,60 @@ jobs:
       # la mot loi lo ra sau khi da merge.
       - run: pnpm build
 
+  # The regression suite is its own package (automation-testing/). It builds both static
+  # exports of the game first (flag off, and Ducker ID sign-in on against a fake issuer),
+  # then serves them; CLIENT_PREBUILT=1 tells its webServer the builds are already there.
   e2e:
-    name: Browser tests
+    name: Regression suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # No package.json at the root: the app lives in client/.
+          package_json_file: client/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            automation-testing/pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
 
-      # Khong can `pnpm build` truoc: playwright.config.ts tu khoi `next dev`
-      # qua webServer.
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - name: Build the static export
+        run: pnpm build
+        env:
+          # forced off, as the suite's webServer does locally
+          NEXT_PUBLIC_FEATURE_DUCKER_SIGN_IN: "false"
+
+      - name: Build the sign-in e2e export
+        run: pnpm build:e2e-auth
+
+      - name: Install the regression suite
+        working-directory: automation-testing
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: automation-testing
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Typecheck, unit, traceability
+        working-directory: automation-testing
+        run: pnpm typecheck && pnpm test:unit && pnpm coverage:check
+
+      - name: Regression suite
+        working-directory: automation-testing
+        env:
+          CLIENT_PREBUILT: "1"
+        run: pnpm test
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: automation-testing/playwright-report/
           retention-days: 7
 
   # Chi xet dependency ma pull request THEM VAO. Lo hong da nam san trong lock
@@ -74,3 +114,8 @@ jobs:
       - uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
+          # braces <= 3.0.3 (GHSA-vfj7-8cjw-p6xm, high) has no patched release at
+          # all. It only reaches the tree through lint tooling (@typescript-eslint ->
+          # fast-glob -> micromatch), so it never ships in the static export.
+          # Remove this line once a fixed braces exists.
+          allow-ghsas: GHSA-vfj7-8cjw-p6xm

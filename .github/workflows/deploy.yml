@@ -14,16 +14,25 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# The game app lives in client/; every `run:` step works from there.
+defaults:
+  run:
+    working-directory: client
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # No package.json at the root: the app lives in client/.
+          package_json_file: client/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
 
       # Lint chay o day chu khong chi trong ci.yml: `build` bat duoc loi kieu
@@ -32,10 +41,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
-      # The unit tests never touch the DOM, so the browser suite is what
-      # actually stops a broken interface from shipping.
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      # The browser regression suite (automation-testing/) gates every pull
+      # request in ci.yml; this workflow only runs after the merge.
 
       - run: pnpm build
         env:
@@ -50,7 +57,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out
+          path: client/out
 
   deploy:
     needs: build
