@@ -1,57 +1,87 @@
-import { expect, test } from "@/fixtures";
+import { test, expect } from "@/fixtures";
 
-import { enterReady, expectGameOver, gotoGame } from "../gameplay/helpers";
+// README §Controls: Space, ↑, W, click, tap. Overlays never swallow a tap (design spec §6); Space on the menu starts a
+// run but a tap on the menu backdrop does not (ux-persona-fixes F-04a, §3.1).
 
-test.describe("Thao tác vỗ cánh", () => {
-  test("chạm giữa vùng chơi ở màn sẵn sàng thì bắt đầu bay", async ({
-    page
+for (const [key, label] of [
+  ["Space", "Space"],
+  ["ArrowUp", "mũi tên lên"],
+  ["KeyW", "W"],
+] as const) {
+  test(`Space, mũi tên lên và W đều bắt đầu được lượt (${label})`, { tag: ["@TC-CONTROLS-001", "@smoke"] }, async ({
+    page,
+    gamePage,
   }) => {
-    await gotoGame(page);
-    await enterReady(page);
-
-    const container = page.getByTestId("game-container");
-
-    /**
-     * Hồi quy cho lỗi "lớp phủ nuốt cú chạm": điểm chính giữa vùng chơi
-     * phải rơi trúng canvas. Nếu ready-overlay lấy lại pointer-events thì
-     * chỗ này trả về "ready-overlay" và người chơi hết đường vỗ cánh.
-     */
-    const topmostTestId = await page.evaluate(() => {
-      const element = document.querySelector("[data-testid='game-container']");
-      if (!element) {
-        return null;
-      }
-      const rect = element.getBoundingClientRect();
-      const hit = document.elementFromPoint(
-        rect.left + rect.width / 2,
-        rect.top + rect.height / 2
-      );
-      return hit?.getAttribute("data-testid") ?? null;
-    });
-    expect(topmostTestId).toBe("game-canvas");
-
-    await container.click();
-
-    await expect(page.getByTestId("ready-overlay")).toBeHidden();
-    await expectGameOver(page);
+    await gamePage.useFakeClock();
+    await gamePage.goto();
+    await gamePage.play();
+    const before = (await gamePage.readWorld()).birdY!;
+    await page.keyboard.press(key);
+    await gamePage.advance(300);
+    await expect(gamePage.ready()).toBeHidden();
+    expect((await gamePage.readWorld()).birdY!).toBeLessThan(before - 20);
   });
+}
 
-  test.describe("trên điện thoại", () => {
-    test.skip(
-      ({ hasTouch }) => !hasTouch,
-      "Chỉ chạy trên project có màn hình cảm ứng"
-    );
+test("bấm giữa vùng chơi ở màn sẵn sàng thì bắt đầu bay, lớp phủ không nuốt cú bấm", { tag: ["@TC-CONTROLS-002", "@smoke"] }, async ({
+  gamePage,
+}) => {
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
+  // regression for "the overlay swallows the tap": the centre of the play area must be the canvas
+  expect(await gamePage.topmostAt(0.5, 0.5)).toBe("game-canvas");
+  await gamePage.container().click();
+  await gamePage.advance(300);
+  await expect(gamePage.ready()).toBeHidden();
+  // and while flying, under the score
+  expect(await gamePage.topmostAt(0.5, 0.5)).toBe("game-canvas");
+  expect(await gamePage.topmostAt(0.5, 0.1)).toBe("game-canvas");
+});
 
-    test("chơi được trọn một lượt chỉ bằng cách chạm", async ({ page }) => {
-      await gotoGame(page);
+test("Space ở màn chờ vào thẳng màn sẵn sàng", { tag: ["@TC-CONTROLS-003"] }, async ({ gamePage }) => {
+  await gamePage.goto();
+  await gamePage.flap("Space");
+  await expect(gamePage.menu()).toBeHidden();
+  await expect(gamePage.ready()).toBeVisible();
+});
 
-      await page.getByTestId("btn-play").tap();
-      await expect(page.getByTestId("ready-overlay")).toBeVisible();
+test("bấm vào nền màn chờ không ném người chơi vào lượt mới", { tag: ["@TC-CONTROLS-004"] }, async ({ gamePage }) => {
+  await gamePage.goto();
+  // top-left corner of the play area: outside the menu card, still inside the container
+  await gamePage.container().click({ position: { x: 8, y: 8 } });
+  await expect(gamePage.menu()).toBeVisible();
+  await expect(gamePage.ready()).toHaveCount(0);
+});
 
-      await page.getByTestId("game-container").tap();
-      await expect(page.getByTestId("ready-overlay")).toBeHidden();
+test("giữ phím chỉ tính một cú vỗ", { tag: ["@TC-CONTROLS-005"] }, async ({ page, gamePage }) => {
+  // every flap the game counts plays the flap tone (a triangle oscillator): the audio probe is the flap counter
+  await gamePage.probeAudio();
+  await gamePage.useFakeClock();
+  await gamePage.goto();
+  await gamePage.play();
 
-      await expectGameOver(page);
-    });
-  });
+  // one press held down: Playwright sends the following keydowns with repeat = true
+  await page.keyboard.down("Space");
+  for (let i = 0; i < 5; i += 1) await page.keyboard.down("Space");
+  await page.keyboard.up("Space");
+  await gamePage.advance(250);
+  expect((await gamePage.audioProbe()).started.filter((w) => w === "triangle")).toHaveLength(1);
+
+  // control: a second, separate press does count
+  await gamePage.flap();
+  await gamePage.advance(50);
+  expect((await gamePage.audioProbe()).started.filter((w) => w === "triangle")).toHaveLength(2);
+});
+
+test("phím vỗ cánh không để trình duyệt cuộn trang", { tag: ["@TC-CONTROLS-006"] }, async ({ gamePage }) => {
+  await gamePage.goto();
+  await gamePage.play();
+  await gamePage.recordKeydowns();
+  await gamePage.flap("Space");
+  await gamePage.flap("ArrowUp");
+  expect(await gamePage.recordedKeydowns()).toEqual([
+    { code: "Space", prevented: true },
+    { code: "ArrowUp", prevented: true },
+  ]);
 });
